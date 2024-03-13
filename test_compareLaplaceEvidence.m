@@ -2,6 +2,7 @@
 % decoupled Laplace
 
 % 1.  Set up simulated example
+addpath utils;
 
 % Set dimensions and hyperparameter
 varprior = .5;      % prior variance of weights
