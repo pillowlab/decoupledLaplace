@@ -5,9 +5,9 @@
 addpath utils;
 
 % Set dimensions and hyperparameter
-varprior = .5;      % prior variance of weights
+varprior = .75;      % prior variance of weights
 nw = 20;            % number of weights
-nstim = 500;       % number of stimuli
+nstim = 200;       % number of stimuli
 
 % Sample weights from prior
 wts = randn(nw,1)*sqrt(varprior);
@@ -53,7 +53,7 @@ legend('true weights', 'MAP estim');
 %% 3. Evaluate Laplace Evidence on a grid
 
 % set of grid values to consider
-vlims = log10([.1, 5]); % limits of grid
+vlims = log10([.1, 4]); % limits of grid
 ngrid = 25; % number of grid points
 vargrid = logspace(vlims(1),vlims(2),ngrid);
 
@@ -73,7 +73,7 @@ title('log-evidence vs. theta'); box off;
 %% 4. Now Evaluate Approximate Laplace Evidence (ALE) on a grid
 
 % Set priorvar value to start from
-theta0 = 4;
+theta0 = 3;
 
 % First, compute MAP estimate given this value of theta
 lfunc = @(w)(neglogpost_GLM(w,theta0,mstruct));
