@@ -5,9 +5,11 @@
 addpath utils;
 
 % Set dimensions and hyperparameter
-varprior = .75;      % prior variance of weights
-nw = 20;            % number of weights
-nstim = 200;       % number of stimuli
+varprior = .5;      % prior variance of weights
+nw = 25;            % number of weights
+nstim = 500;       % number of stimuli
+vlims = log10([.1, 5]); % limits of grid over sig^2 to consider
+theta0 = 5; % prior variance for DLA
 
 % Sample weights from prior
 wts = randn(nw,1)*sqrt(varprior);
@@ -53,7 +55,6 @@ legend('true weights', 'MAP estim');
 %% 3. Evaluate Laplace Evidence on a grid
 
 % set of grid values to consider
-vlims = log10([.1, 4]); % limits of grid
 ngrid = 25; % number of grid points
 vargrid = logspace(vlims(1),vlims(2),ngrid);
 
@@ -64,16 +65,17 @@ for jj = 1:ngrid
     logLaplaceEv(jj) = compLogLaplaceEv(vargrid(jj),mstruct,wmap,opts);
 end
 
+% Find maximum (from grid values);
+[logLaplEvMax,ivarHat]=max(logLaplaceEv);
+varHat = vargrid(ivarHat);
+
 subplot(212);
-plot(vargrid,logLaplaceEv);
+plot(vargrid,logLaplaceEv,varHat,logLaplEvMax,'*');
 xlabel('sig^2'); ylabel('log-evidence');
 title('log-evidence vs. theta'); box off;
 
 
 %% 4. Now Evaluate Approximate Laplace Evidence (ALE) on a grid
-
-% Set priorvar value to start from
-theta0 = 3;
 
 % First, compute MAP estimate given this value of theta
 lfunc = @(w)(neglogpost_GLM(w,theta0,mstruct));
@@ -83,11 +85,12 @@ wmap0 = fminunc(lfunc,zeros(nw,1),opts);  % get MAP estimate
 [negL0,~,ddnL0] = mstruct.neglogli(wmap0,mstruct.liargs{:}); 
 
 % Get Hessian of log-prior (note this is NOT the negative log-prior)
-[logp,~,negCinv,logdetCinv] = mstruct.logprior(wmap0,theta0,mstruct.priargs{:});
+[logp,~,negCinv] = mstruct.logprior(wmap0,theta0,mstruct.priargs{:});
 
 % Compute log-evidence using Laplace approximation
 postHess0 = ddnL0-negCinv; % posterior Hessian
-logEv0 = -negL0 + logp + .5*logdetCinv - .5*logdet(postHess0); % log-evidence
+logpost = .5*logdet(postHess0)-(nw/2)*log(2*pi); % log-posterior at wmap
+logEv0 = (-negL0) + logp - logpost;  % log-evidence
 
 % Compute Hessian of negative log-likelihood times log-likelihood mean
 ddnLmu0 = postHess0*wmap0;
@@ -96,7 +99,7 @@ ddnLmu0 = postHess0*wmap0;
 % ================================================================
 % ALE moving
 % ================================================================
-
+logpriconst = - nw/2*log(2*pi)*0;   % constant contained in log prior;
 
 % allocate storage for approximate Laplace Evidence (ALE)
 logALE_moving = zeros(ngrid,1); 
@@ -113,23 +116,30 @@ for jj = 1:ngrid
     % Compute updated w_MAP
     wmap_moving = Hess_moving\ddnLmu0;
     
-    % Compute prior terms
-    logp_moving = -.5*sum(wmap_moving.^2)/vargrid(jj);
+    % Compute log prior (ignoring log(2pi) term)
+    logp_moving = -.5*sum(wmap_moving.^2)/vargrid(jj) ...
+        + .5*logdetCinv_moving + logpriconst;
     
     % Compute negative log-likelihood (ONLY NEEDED FOR MOVING)
     negL_moving = mstruct.neglogli(wmap_moving,mstruct.liargs{:});  
 
+     % Compute log posterior (ignoring log(2pi) term)
+    logpost_moving = .5*logdet(Hess_moving); % (note quadratic term is 0)
+
     % Compute ALE
-    logALE_moving(jj) = -negL_moving + logp_moving + .5*logdetCinv_moving - .5*logdet(Hess_moving); 
+    logALE_moving(jj) = -negL_moving + logp_moving - logpost_moving;
 end
 
-% ================================================================
+%% ================================================================
 % ALE fixed
 % ================================================================
 
 % allocate storage 
 logALE_fixed = zeros(ngrid,1); 
+
+% compute squared L2 norm of wmap0 (needed for prior term)
 norm2wmap0 = sum(wmap0.^2);
+
 for jj = 1:ngrid
 
     % make inverse prior covariance
@@ -143,18 +153,24 @@ for jj = 1:ngrid
     wmap_giventheta = Hess_giventheta\ddnLmu0;
     
     % Compute prior term
-    logp_giventheta = -.5*norm2wmap0/vargrid(jj);
+    logp_giventheta = -.5*norm2wmap0/vargrid(jj) + ...
+        .5*logdetCinv_giventheta + logpriconst;
+
+    % Compute posterior term
+    logpost_giventheta = -0.5*sum((wmap0-wmap_giventheta).^2) ...
+        + .5*logdet(Hess_giventheta);
     
     % Compute ALE
-    logALE_fixed(jj) = -negL0 + logp_giventheta + .5*logdetCinv_giventheta - .5*logdet(Hess_giventheta); 
+    logALE_fixed(jj) = -negL0 + logp_giventheta - logpost_giventheta;
 end
 
 
 % Make plot of LE and ALE
 subplot(212);
 plot(vargrid,logLaplaceEv,vargrid,logALE_moving,...
-    vargrid,logALE_fixed, theta0,logEv0,'ko');
+    vargrid,logALE_fixed, theta0,logEv0,'ko',...
+    varHat,logLaplEvMax,'*');
 xlabel('variance (sig^2)'); ylabel('log-evidence');
 title('log-evidence vs. precision'); box off;
-legend('Laplace Evidence', 'ALE (moving)', 'ALE (fixed)', 'theta_0');
+legend('Laplace Evidence', 'ALE (moving)', 'ALE (fixed)', 'theta_0','theta max');
 set(gca,'ylim',[min(logLaplaceEv)-1,max([logALE_moving;logLaplaceEv])+1]);

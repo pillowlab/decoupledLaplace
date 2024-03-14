@@ -29,10 +29,13 @@ wmap = fminunc(lfunc,w0,optimopts);
 [negL,~,ddnegL] = mstruct.neglogli(wmap,mstruct.liargs{:}); 
 
 % evaluate log-prior and its Hessian
-[logp,~,negCinv,logdetCinv] = mstruct.logprior(wmap,theta,mstruct.priargs{:});
+[logp,~,negCinv] = mstruct.logprior(wmap,theta,mstruct.priargs{:});
 
 % Hessian of posterior
 postHess = ddnegL - negCinv;
 
+% log-posterior
+logpost = .5*logdet(postHess) - length(wmap)/2*log(2*pi);
+
 % Compute log-evidence using Laplace approximation
-logEv = -negL + logp + .5*logdetCinv - .5*logdet(postHess);
+logEv = (-negL) + logp - logpost;
