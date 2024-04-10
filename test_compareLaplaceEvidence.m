@@ -5,11 +5,11 @@
 addpath utils;
 
 % Set dimensions and hyperparameter
-varprior = .5;      % prior variance of weights
-nw = 25;            % number of weights
+varprior = 2;      % prior variance of weights
+nw = 20;            % number of weights
 nstim = 500;       % number of stimuli
 vlims = log10([.1, 5]); % limits of grid over sig^2 to consider
-theta0 = 5; % prior variance for DLA
+theta0 = 2; % prior variance for DLA
 
 % Sample weights from prior
 wts = randn(nw,1)*sqrt(varprior);
@@ -74,6 +74,7 @@ plot(vargrid,logLaplaceEv,varHat,logLaplEvMax,'*');
 xlabel('sig^2'); ylabel('log-evidence');
 title('log-evidence vs. theta'); box off;
 
+%theta0=varHat
 
 %% 4. Now Evaluate Approximate Laplace Evidence (ALE) on a grid
 
@@ -99,7 +100,7 @@ ddnLmu0 = postHess0*wmap0;
 % ================================================================
 % ALE moving
 % ================================================================
-logpriconst = - nw/2*log(2*pi)*0;   % constant contained in log prior;
+logpriconst = - nw/2*log(2*pi);   % constant contained in log prior;
 
 % allocate storage for approximate Laplace Evidence (ALE)
 logALE_moving = zeros(ngrid,1); 
@@ -124,7 +125,7 @@ for jj = 1:ngrid
     negL_moving = mstruct.neglogli(wmap_moving,mstruct.liargs{:});  
 
      % Compute log posterior (ignoring log(2pi) term)
-    logpost_moving = .5*logdet(Hess_moving); % (note quadratic term is 0)
+    logpost_moving = .5*logdet(Hess_moving) + logpriconst; % (note quadratic term is 0)
 
     % Compute ALE
     logALE_moving(jj) = -negL_moving + logp_moving - logpost_moving;
@@ -158,7 +159,7 @@ for jj = 1:ngrid
 
     % Compute posterior term
     logpost_giventheta = -0.5*sum((wmap0-wmap_giventheta).^2) ...
-        + .5*logdet(Hess_giventheta);
+        + .5*logdet(Hess_giventheta)+logpriconst;
     
     % Compute ALE
     logALE_fixed(jj) = -negL0 + logp_giventheta - logpost_giventheta;
