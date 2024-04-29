@@ -100,7 +100,7 @@ ddnLmu0 = postHess0*wmap0;
 % ================================================================
 % ALE moving
 % ================================================================
-logpriconst = - nw/2*log(2*pi);   % constant contained in log prior;
+log2piconst = - nw/2*log(2*pi);   % normalizing constant for log prior & posterior
 
 % allocate storage for approximate Laplace Evidence (ALE)
 logALE_moving = zeros(ngrid,1); 
@@ -119,13 +119,13 @@ for jj = 1:ngrid
     
     % Compute log prior 
     logp_moving = -.5*sum(wmap_moving.^2)/vargrid(jj) ...
-        + .5*logdetCinv_moving + logpriconst;
+        + .5*logdetCinv_moving + log2piconst;
     
     % Compute negative log-likelihood (ONLY NEEDED FOR MOVING)
     negL_moving = mstruct.neglogli(wmap_moving,mstruct.liargs{:});  
 
      % Compute log posterior 
-    logpost_moving = .5*logdet(Hess_moving) + logpriconst; % (note quadratic term is 0)
+    logpost_moving = .5*logdet(Hess_moving) + log2piconst; % (note quadratic term is 0)
 
     % Compute ALE
     logALE_moving(jj) = -negL_moving + logp_moving - logpost_moving;
@@ -155,7 +155,7 @@ for jj = 1:ngrid
     
     % Compute prior term
     logp_giventheta = -.5*norm2wmap0/vargrid(jj) + ...
-        .5*logdetCinv_giventheta + logpriconst;
+        .5*logdetCinv_giventheta + log2piconst;
 
 % %     % Compute posterior term (MISTAKE HERE)
 %      logpost_giventheta = -0.5*sum((wmap0-wmap_giventheta).^2) ...
@@ -164,7 +164,7 @@ for jj = 1:ngrid
     % Compute posterior term
     dwmap = (wmap0-wmap_giventheta); % difference from mean vector
     logpost_giventheta = -0.5*dwmap'*Hess_giventheta*dwmap ...
-        + .5*logdet(Hess_giventheta)+logpriconst;
+        + .5*logdet(Hess_giventheta)+log2piconst;
 
     
     % Compute ALE

@@ -13,8 +13,8 @@
 addpath utils;
 
 % Set dimensions and hyperparameter
-varprior = .3;  % prior variance of weights
-nw = 50;         % number of weights
+varprior = .8;  % prior variance of weights
+nw = 20;         % number of weights
 nstim = 250;     % number of stimuli
 vlims = log10([.1, 4]); % limits of grid over sig^2 to consider
 theta0 = 1; % prior variance for DLA
@@ -104,7 +104,7 @@ logEv0 = (-negL0) + logp - logpost;  % log-evidence
 ddnLmu0 = postHess0*wmap0;
 
 % Compute some constants
-logpriconst = - nw/2*log(2*pi);   % normalizing constant for log prior 
+log2piconst = - nw/2*log(2*pi);   % normalizing constant for log prior & posterior
 norm2wmap0 = sum(wmap0.^2); % squared L2 norm of wmap0 
 
 % allocate storage for approximate Laplace Evidence (ALE)
@@ -130,11 +130,11 @@ for jj = 1:ngrid
     % =======================
     
     % Compute log prior 
-    logp_moving = -.5*sum(wmap_giventheta.^2)/vargrid(jj)+ .5*logdetCinv + logpriconst;
+    logp_moving = -.5*sum(wmap_giventheta.^2)/vargrid(jj)+ .5*logdetCinv + log2piconst;
     % Compute negative log-likelihood 
     negL_moving = mstruct.neglogli(wmap_giventheta,mstruct.liargs{:});  
      % Compute log posterior 
-    logpost_moving = .5*logdet(Hess_giventheta) + logpriconst; % (note quadratic term is 0)
+    logpost_moving = .5*logdet(Hess_giventheta) + log2piconst; % (note quadratic term is 0)
 
     % Compute ALE (moving)
     logALE_moving(jj) = -negL_moving + logp_moving - logpost_moving;
@@ -144,11 +144,11 @@ for jj = 1:ngrid
     % =======================
 
     % Compute prior term
-    logp_fixed = -.5*norm2wmap0/vargrid(jj)+ .5*logdetCinv + logpriconst;
+    logp_fixed = -.5*norm2wmap0/vargrid(jj)+ .5*logdetCinv + log2piconst;
     % Compute posterior term
     dwmap = (wmap0-wmap_giventheta); % difference from mean vector
     logpost_fixed = -0.5*dwmap'*Hess_giventheta*dwmap ...
-            + .5*logdet(Hess_giventheta)+logpriconst;
+            + .5*logdet(Hess_giventheta)+log2piconst;
     
     % Compute ALE (fixed)
     logALE_fixed(jj) = -negL0 + logp_fixed - logpost_fixed;
@@ -166,7 +166,7 @@ for jj = 1:ngrid
     % ================
     
      % Compute log posterior (moving)
-    logpost_movingNewton = .5*logdet(Hess_updated) + logpriconst; % (note quadratic term is 0)
+    logpost_movingNewton = .5*logdet(Hess_updated) + log2piconst; % (note quadratic term is 0)
 
     % Compute ALE (Newton-moving)
     logALE_movingNewton(jj) = -negL_moving + logp_moving - logpost_movingNewton;
@@ -182,7 +182,7 @@ for jj = 1:ngrid
     % Compute posterior term
     dwmap = (wmap0-wmap_giventheta); % difference from mean vector
     logpost_fixedNewton = -0.5*dwmap'*Hess_updated*dwmap ...
-            + .5*logdet(Hess_updated)+logpriconst;
+            + .5*logdet(Hess_updated)+log2piconst;
     
     % Compute ALE (Newton-fixed)
     logALE_fixedNewton(jj) = -negL0 + logp_fixed - logpost_fixedNewton;
