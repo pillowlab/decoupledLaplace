@@ -1,4 +1,4 @@
-% test_newtonLaplace
+% test_compareNewtonLaplaceEvidence.m
 %
 % Tests out an alternative to decoupled Laplace called (for now)
 % Newton-Laplace.  In this case, we update the MAP estimate "wmap" just as we
