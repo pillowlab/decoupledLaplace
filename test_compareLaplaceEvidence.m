@@ -5,9 +5,9 @@
 addpath utils;
 
 % Set dimensions and hyperparameter
-varprior = 1.5;      % prior variance of weights
+varprior = 2;      % prior variance of weights
 nw = 20;            % number of weights
-nstim = 100;       % number of stimuli
+nstim = 200;       % number of stimuli
 vlims = log10([.1, 5]); % limits of grid over sig^2 to consider
 theta0 = 1; % prior variance for DLA
 
@@ -117,14 +117,14 @@ for jj = 1:ngrid
     % Compute updated w_MAP
     wmap_moving = Hess_moving\ddnLmu0;
     
-    % Compute log prior (ignoring log(2pi) term)
+    % Compute log prior 
     logp_moving = -.5*sum(wmap_moving.^2)/vargrid(jj) ...
         + .5*logdetCinv_moving + logpriconst;
     
     % Compute negative log-likelihood (ONLY NEEDED FOR MOVING)
     negL_moving = mstruct.neglogli(wmap_moving,mstruct.liargs{:});  
 
-     % Compute log posterior (ignoring log(2pi) term)
+     % Compute log posterior 
     logpost_moving = .5*logdet(Hess_moving) + logpriconst; % (note quadratic term is 0)
 
     % Compute ALE
@@ -157,9 +157,15 @@ for jj = 1:ngrid
     logp_giventheta = -.5*norm2wmap0/vargrid(jj) + ...
         .5*logdetCinv_giventheta + logpriconst;
 
+% %     % Compute posterior term (MISTAKE HERE)
+%      logpost_giventheta = -0.5*sum((wmap0-wmap_giventheta).^2) ...
+%          + .5*logdet(Hess_giventheta)+logpriconst;
+
     % Compute posterior term
-    logpost_giventheta = -0.5*sum((wmap0-wmap_giventheta).^2) ...
+    dwmap = (wmap0-wmap_giventheta); % difference from mean vector
+    logpost_giventheta = -0.5*dwmap'*Hess_giventheta*dwmap ...
         + .5*logdet(Hess_giventheta)+logpriconst;
+
     
     % Compute ALE
     logALE_fixed(jj) = -negL0 + logp_giventheta - logpost_giventheta;

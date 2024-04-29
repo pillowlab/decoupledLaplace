@@ -90,13 +90,13 @@ lfunc = @(w)(neglogpost_GLM(w,theta0,mstruct));
 wmap0 = fminunc(lfunc,zeros(nw,1),opts);  % get MAP estimate
 
 % Compute gradient and Hessian of negative log-likelihood 
-[negL0,dnegL0,ddnL0] = mstruct.neglogli(wmap0,mstruct.liargs{:}); 
+[negL0,dnegL0,ddnegL0] = mstruct.neglogli(wmap0,mstruct.liargs{:}); 
 
 % Compute Hessian of log-prior 
 [logp,~,negCinv] = mstruct.logprior(wmap0,theta0,mstruct.priargs{:});
 
 % Compute log-evidence using Laplace approximation
-postHess0 = ddnL0-negCinv; % posterior Hessian
+postHess0 = ddnegL0-negCinv; % posterior Hessian
 logpost = .5*logdet(postHess0)-(nw/2)*log(2*pi); % log-posterior at wmap
 logEv0 = (-negL0) + logp - logpost;  % log-evidence
 
@@ -120,7 +120,7 @@ for jj = 1:ngrid
     logdetCinv = -nw*log(vargrid(jj)); % log-determinant of inv prior cov
     
     % Compute updated posterior Hessian
-    Hess_giventheta = (ddnL0+Cinv_giventheta);
+    Hess_giventheta = (ddnegL0+Cinv_giventheta);
     
     % Compute updated w_MAP
     wmap_giventheta = Hess_giventheta\ddnLmu0;
