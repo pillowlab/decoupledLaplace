@@ -13,9 +13,9 @@
 addpath utils;
 
 % Set dimensions and hyperparameter
-varprior = 2.5;      % prior variance of weights
-nw = 50;            % number of weights
-nstim = 250;       % number of stimuli
+varprior = 2.5;  % prior variance of weights
+nw = 50;         % number of weights
+nstim = 250;     % number of stimuli
 vlims = log10([.1, 4]); % limits of grid over sig^2 to consider
 theta0 = 1; % prior variance for DLA
 
