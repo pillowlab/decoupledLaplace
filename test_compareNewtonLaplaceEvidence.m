@@ -15,7 +15,7 @@ addpath utils;
 % Set dimensions and hyperparameter
 varprior = 2;  % prior variance of weights
 nw = 20;         % number of weights
-nstim = 100;     % number of stimuli
+nstim = 200;     % number of stimuli
 vlims = log10([.1, 4]); % limits of grid over sig^2 to consider
 theta0 = 1; % prior variance for DLA
 
@@ -181,7 +181,7 @@ for jj = 1:ngrid
 %         + .5*logdet(Hess_updated)+logpriconst;
     % Compute posterior term
     dwmap = (wmap0-wmap_giventheta); % difference from mean vector
-    logpost_fixedNewton = -0.5*dwmap'*Hess_updated*dwmap ...
+    logpost_fixedNewton = -0.5*dwmap'*Hess_giventheta*dwmap ...
             + .5*logdet(Hess_updated)+log2piconst;
     
     % Compute ALE (Newton-fixed)
