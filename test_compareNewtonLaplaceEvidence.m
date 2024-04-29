@@ -132,12 +132,12 @@ for jj = 1:ngrid
     % Compute log prior 
     logp_moving = -.5*sum(wmap_giventheta.^2)/vargrid(jj)+ .5*logdetCinv + log2piconst;
     % Compute negative log-likelihood 
-    negL_moving = mstruct.neglogli(wmap_giventheta,mstruct.liargs{:});  
+    logL_moving = -mstruct.neglogli(wmap_giventheta,mstruct.liargs{:});  
      % Compute log posterior 
     logpost_moving = .5*logdet(Hess_giventheta) + log2piconst; % (note quadratic term is 0)
 
     % Compute ALE (moving)
-    logALE_moving(jj) = -negL_moving + logp_moving - logpost_moving;
+    logALE_moving(jj) = logL_moving + logp_moving - logpost_moving;
     
     % =======================
     % fixed ALE
@@ -169,7 +169,7 @@ for jj = 1:ngrid
     logpost_movingNewton = .5*logdet(Hess_updated) + log2piconst; % (note quadratic term is 0)
 
     % Compute ALE (Newton-moving)
-    logALE_movingNewton(jj) = -negL_moving + logp_moving - logpost_movingNewton;
+    logALE_movingNewton(jj) = logL_moving + logp_moving - logpost_movingNewton;
     % Compute ALE (Newton-moving)
     
     % ================

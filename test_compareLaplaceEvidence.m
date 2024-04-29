@@ -122,13 +122,13 @@ for jj = 1:ngrid
         + .5*logdetCinv_moving + log2piconst;
     
     % Compute negative log-likelihood (ONLY NEEDED FOR MOVING)
-    negL_moving = mstruct.neglogli(wmap_moving,mstruct.liargs{:});  
+    logL_moving = -mstruct.neglogli(wmap_moving,mstruct.liargs{:});  
 
      % Compute log posterior 
     logpost_moving = .5*logdet(Hess_moving) + log2piconst; % (note quadratic term is 0)
 
     % Compute ALE
-    logALE_moving(jj) = -negL_moving + logp_moving - logpost_moving;
+    logALE_moving(jj) = logL_moving + logp_moving - logpost_moving;
 end
 
 %% ================================================================
