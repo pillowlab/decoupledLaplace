@@ -13,9 +13,9 @@
 addpath utils;
 
 % Set dimensions and hyperparameter
-varprior = .8;  % prior variance of weights
+varprior = 2;  % prior variance of weights
 nw = 20;         % number of weights
-nstim = 250;     % number of stimuli
+nstim = 100;     % number of stimuli
 vlims = log10([.1, 4]); % limits of grid over sig^2 to consider
 theta0 = 1; % prior variance for DLA
 
@@ -194,8 +194,8 @@ subplot(212);
 plot(vargrid,logLaplaceEv,vargrid,logALE_moving,vargrid,logALE_fixed, ...
     vargrid,logALE_movingNewton,'--',vargrid,logALE_fixedNewton,'--',...    
     theta0,logEv0,'ko',varHat,logLaplEvMax,'*');
-xlabel('variance (sig^2)'); ylabel('log-evidence');
-title('log-evidence vs. precision'); box off;
+xlabel('prior variance (\sigma^2)'); ylabel('log-evidence');
+title('log-evidence vs \sigma^2'); box off;
 legend('Laplace Evidence', 'ALE (moving)', 'ALE (fixed)', 'newALE (moving)', ...
     'newALE (fixed)', 'theta_0','theta max'); 
 set(gca,'ylim',[min(logLaplaceEv)-1,max([logALE_moving;logLaplaceEv])+1]);

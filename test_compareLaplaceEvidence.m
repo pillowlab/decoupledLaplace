@@ -177,7 +177,7 @@ subplot(212);
 plot(vargrid,logLaplaceEv,vargrid,logALE_moving,...
     vargrid,logALE_fixed, theta0,logEv0,'ko',...
     varHat,logLaplEvMax,'*');
-xlabel('variance (sig^2)'); ylabel('log-evidence');
-title('log-evidence vs. precision'); box off;
+xlabel('prior variance (\sigma^2)'); ylabel('log-evidence');
+title('log-evidence vs \sigma^2'); box off;
 legend('Laplace Evidence', 'ALE (moving)', 'ALE (fixed)', 'theta_0','theta max');
 set(gca,'ylim',[min(logLaplaceEv)-1,max([logALE_moving;logLaplaceEv])+1]);
