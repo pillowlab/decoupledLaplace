@@ -13,7 +13,7 @@
 addpath utils;
 
 % Set dimensions and hyperparameter
-varprior = 2.5;  % prior variance of weights
+varprior = .3;  % prior variance of weights
 nw = 50;         % number of weights
 nstim = 250;     % number of stimuli
 vlims = log10([.1, 4]); % limits of grid over sig^2 to consider
@@ -146,8 +146,9 @@ for jj = 1:ngrid
     % Compute prior term
     logp_fixed = -.5*norm2wmap0/vargrid(jj)+ .5*logdetCinv + logpriconst;
     % Compute posterior term
-    logpost_fixed = -0.5*sum((wmap0-wmap_giventheta).^2) ...
-        + .5*logdet(Hess_giventheta)+logpriconst;
+    dwmap = (wmap0-wmap_giventheta); % difference from mean vector
+    logpost_fixed = -0.5*dwmap'*Hess_giventheta*dwmap ...
+            + .5*logdet(Hess_giventheta)+logpriconst;
     
     % Compute ALE (fixed)
     logALE_fixed(jj) = -negL0 + logp_fixed - logpost_fixed;
@@ -175,9 +176,13 @@ for jj = 1:ngrid
     % fixed-Newton ALE
     % ================
 
+% %     % Compute posterior term (ERROR HERE)
+%     logpost_fixedNewton = -0.5*sum((wmap0-wmap_giventheta).^2) ...
+%         + .5*logdet(Hess_updated)+logpriconst;
     % Compute posterior term
-    logpost_fixedNewton = -0.5*sum((wmap0-wmap_giventheta).^2) ...
-        + .5*logdet(Hess_updated)+logpriconst;
+    dwmap = (wmap0-wmap_giventheta); % difference from mean vector
+    logpost_fixedNewton = -0.5*dwmap'*Hess_updated*dwmap ...
+            + .5*logdet(Hess_updated)+logpriconst;
     
     % Compute ALE (Newton-fixed)
     logALE_fixedNewton(jj) = -negL0 + logp_fixed - logpost_fixedNewton;
@@ -187,7 +192,7 @@ end
 % Make plot of LE and ALE
 subplot(212);
 plot(vargrid,logLaplaceEv,vargrid,logALE_moving,vargrid,logALE_fixed, ...
-    vargrid,logALE_fixedNewton,'--',vargrid,logALE_movingNewton,'--',...    
+    vargrid,logALE_movingNewton,'--',vargrid,logALE_fixedNewton,'--',...    
     theta0,logEv0,'ko',varHat,logLaplEvMax,'*');
 xlabel('variance (sig^2)'); ylabel('log-evidence');
 title('log-evidence vs. precision'); box off;
