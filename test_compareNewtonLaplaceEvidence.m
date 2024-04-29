@@ -36,15 +36,14 @@ mstruct.logprior = @logprior_stdnormal;         % log-prior function handle
 mstruct.liargs = {xx,yy};    % arguments for log-likelihood
 mstruct.priargs = {};        % extra arguments for prior (besides theta)
 
-% make function handle
-lfunc = @(w)(neglogpost_GLM(w,varprior,mstruct));
+% Set optimization parameters for fminunc
+opts = optimoptions('fminunc','algorithm','trust-region','SpecifyObjectiveGradient',true,'HessianFcn','objective','display','off');
 
 % intial guess for weights (random)
 w0 = randn(nw,1)*.1;
 
-% Set optimization parameters for fminunc
-opts = optimoptions('fminunc','algorithm','trust-region','SpecifyObjectiveGradient',true,'HessianFcn','objective','display','off');
-
+% make function handle
+lfunc = @(w)(neglogpost_GLM(w,varprior,mstruct));
 % % Optional: Check that analytic gradient and Hessian are correct
 % HessCheck(lfunc, w0);
 
