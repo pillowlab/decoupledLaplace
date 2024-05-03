@@ -13,11 +13,11 @@
 addpath utils;
 
 % Set dimensions and hyperparameter
-varprior = 4;  % prior variance of weights
+varprior = 1;  % prior variance of weights
 nw = 20;         % number of weights
 nstim = 100;     % number of stimuli
 vlims = log10([.1, 4]); % limits of grid over sig^2 to consider
-theta0 = 0.5; % prior variance for DLA
+theta0 = 2; % prior variance for DLA
 
 % Sample weights from prior
 wts = randn(nw,1)*sqrt(varprior);
@@ -60,7 +60,7 @@ xlabel('coefficient #'); ylabel('weight');
 legend('true weights', 'MAP estim'); 
 
 
-%% 3. Evaluate Laplace Evidence on a grid
+%% 3. Evaluate Full Laplace Evidence on a grid
 
 % set of grid values to consider
 ngrid = 25; % number of grid points
@@ -74,8 +74,8 @@ for jj = 1:ngrid
 end
 
 % Find maximum (from grid values);
-[logLaplEvMax,ivarHat]=max(logLaplaceEv);
-varHat = vargrid(ivarHat);
+[logLaplEvMax,ii]=max(logLaplaceEv);
+varHat = vargrid(ii);
 
 subplot(212);
 plot(vargrid,logLaplaceEv,varHat,logLaplEvMax,'*');
@@ -94,15 +94,15 @@ wmap0 = fminunc(lfunc,zeros(nw,1),opts);  % get MAP estimate
 [negL0,dnegL0,ddnegL0] = mstruct.neglogli(wmap0,mstruct.liargs{:}); 
 
 % Compute Hessian of log-prior 
-[logp,~,negCinv] = mstruct.logprior(wmap0,theta0,mstruct.priargs{:});
+[logpri,~,negCinv] = mstruct.logprior(wmap0,theta0,mstruct.priargs{:});
 
 % Compute log-evidence using Laplace approximation
 postHess0 = ddnegL0-negCinv; % posterior Hessian
 logpost = .5*logdet(postHess0)-(nw/2)*log(2*pi); % log-posterior at wmap
-logEv0 = (-negL0) + logp - logpost;  % log-evidence
+logEv0 = (-negL0) + logpri - logpost;  % log-evidence
 
 % Compute Hessian of negative log-likelihood times log-likelihood mean
-ddnLmu0 = postHess0*wmap0;
+Lmu0 = postHess0*wmap0;
 
 % Compute some constants
 log2piconst = - nw/2*log(2*pi);   % normalizing constant for log prior & posterior
@@ -122,7 +122,7 @@ for jj = 1:ngrid
     Hess_giventheta = (ddnegL0+Cinv_giventheta);
     
     % Compute updated w_MAP
-    wmap_giventheta = Hess_giventheta\ddnLmu0;
+    wmap_giventheta = Hess_giventheta\Lmu0;
 
     % =======================
     % compute ALE
@@ -155,11 +155,21 @@ for jj = 1:ngrid
     
 end
 
-% Make plot of LE and ALE
+% Find Newton-ALE max
+[logALEMax,ii]=max(logALE_Newton);
+varHat_ALE = vargrid(ii);
+
+% Check that our function for newton-ALE works
+logALEnewton_max = -neglogEv_NewtonLaplace(log(varHat_ALE),mstruct,wmap0,ddnegL0,Lmu0);
+
+
+
+%% Make plot of LE and ALE
 subplot(212);
 plot(vargrid,logLaplaceEv,vargrid,logALE,vargrid,logALE_Newton,...    
-    theta0,logEv0,'ko',varHat,logLaplEvMax,'*');
+    theta0,logEv0,'ko',varHat,logLaplEvMax,'*', varHat_ALE, logALEnewton_max,'s');
 xlabel('prior variance (\sigma^2)'); ylabel('log-evidence');
 title('log-evidence vs \sigma^2'); box off;
-legend('Laplace Evidence', 'ALE', 'ALE-Newton','theta_0','theta max'); 
+legend('Laplace Evidence', 'ALE', 'ALE-Newton','theta_0','theta max','Newton-ALE max', ...
+    'location', 'southeast'); 
 set(gca,'ylim',[min(logLaplaceEv)-1,max([logALE;logLaplaceEv])+1]);
