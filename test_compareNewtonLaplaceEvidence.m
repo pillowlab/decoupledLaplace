@@ -13,11 +13,11 @@
 addpath utils;
 
 % Set dimensions and hyperparameter
-varprior = 2;  % prior variance of weights
+varprior = 4;  % prior variance of weights
 nw = 20;         % number of weights
-nstim = 200;     % number of stimuli
+nstim = 100;     % number of stimuli
 vlims = log10([.1, 4]); % limits of grid over sig^2 to consider
-theta0 = 1; % prior variance for DLA
+theta0 = 0.5; % prior variance for DLA
 
 % Sample weights from prior
 wts = randn(nw,1)*sqrt(varprior);
@@ -27,6 +27,7 @@ xx = randn(nstim,nw); % inputs
 xproj = xx*wts;       % projection of stimulus onto weights
 pp = logistic(xproj);  % probability of 1
 yy = rand(nstim,1)<pp; % Bernoulli outputs
+
 
 %% 2. Compute MAP estimate of weights given true hyperparams
 
@@ -108,10 +109,8 @@ log2piconst = - nw/2*log(2*pi);   % normalizing constant for log prior & posteri
 norm2wmap0 = sum(wmap0.^2); % squared L2 norm of wmap0 
 
 % allocate storage for approximate Laplace Evidence (ALE)
-logALE_moving = zeros(ngrid,1); 
-logALE_fixed = zeros(ngrid,1); 
-logALE_movingNewton = zeros(ngrid,1); 
-logALE_fixedNewton = zeros(ngrid,1); 
+logALE = zeros(ngrid,1); 
+logALE_Newton = zeros(ngrid,1); 
 
 for jj = 1:ngrid
 
@@ -126,32 +125,18 @@ for jj = 1:ngrid
     wmap_giventheta = Hess_giventheta\ddnLmu0;
 
     % =======================
-    % moving ALE
+    % compute ALE
     % =======================
     
     % Compute log prior 
-    logp_moving = -.5*sum(wmap_giventheta.^2)/vargrid(jj)+ .5*logdetCinv + log2piconst;
+    logp_ale = -.5*sum(wmap_giventheta.^2)/vargrid(jj)+ .5*logdetCinv + log2piconst;
     % Compute negative log-likelihood 
-    logL_moving = -mstruct.neglogli(wmap_giventheta,mstruct.liargs{:});  
+    logL_ale = -mstruct.neglogli(wmap_giventheta,mstruct.liargs{:});  
      % Compute log posterior 
-    logpost_moving = .5*logdet(Hess_giventheta) + log2piconst; % (note quadratic term is 0)
+    logpost_ale = .5*logdet(Hess_giventheta) + log2piconst; % (note quadratic term is 0)
 
     % Compute ALE (moving)
-    logALE_moving(jj) = logL_moving + logp_moving - logpost_moving;
-    
-    % =======================
-    % fixed ALE
-    % =======================
-
-    % Compute prior term
-    logp_fixed = -.5*norm2wmap0/vargrid(jj)+ .5*logdetCinv + log2piconst;
-    % Compute posterior term
-    dwmap = (wmap0-wmap_giventheta); % difference from mean vector
-    logpost_fixed = -0.5*dwmap'*Hess_giventheta*dwmap ...
-            + .5*logdet(Hess_giventheta)+log2piconst;
-    
-    % Compute ALE (fixed)
-    logALE_fixed(jj) = -negL0 + logp_fixed - logpost_fixed;
+    logALE(jj) = logL_ale + logp_ale - logpost_ale;
     
     % ===========================================================
     % Compute Newton-Laplace ALE
@@ -160,42 +145,21 @@ for jj = 1:ngrid
     % Compute updated Hessian for log-likelihood using new wmap
     [~,~,ddnL1] = mstruct.neglogli(wmap_giventheta,mstruct.liargs{:});
     Hess_updated = (ddnL1+Cinv_giventheta);
-
-    % ================
-    % moving-Newton ALE
-    % ================
     
      % Compute log posterior (moving)
-    logpost_movingNewton = .5*logdet(Hess_updated) + log2piconst; % (note quadratic term is 0)
+    logpost_Newton = .5*logdet(Hess_updated) + log2piconst; % (note quadratic term is 0)
 
     % Compute ALE (Newton-moving)
-    logALE_movingNewton(jj) = logL_moving + logp_moving - logpost_movingNewton;
+    logALE_Newton(jj) = logL_ale + logp_ale - logpost_Newton;
     % Compute ALE (Newton-moving)
-    
-    % ================
-    % fixed-Newton ALE
-    % ================
-
-% %     % Compute posterior term (ERROR HERE)
-%     logpost_fixedNewton = -0.5*sum((wmap0-wmap_giventheta).^2) ...
-%         + .5*logdet(Hess_updated)+logpriconst;
-    % Compute posterior term
-    dwmap = (wmap0-wmap_giventheta); % difference from mean vector
-    logpost_fixedNewton = -0.5*dwmap'*Hess_giventheta*dwmap ...
-            + .5*logdet(Hess_updated)+log2piconst;
-    
-    % Compute ALE (Newton-fixed)
-    logALE_fixedNewton(jj) = -negL0 + logp_fixed - logpost_fixedNewton;
     
 end
 
 % Make plot of LE and ALE
 subplot(212);
-plot(vargrid,logLaplaceEv,vargrid,logALE_moving,vargrid,logALE_fixed, ...
-    vargrid,logALE_movingNewton,'--',vargrid,logALE_fixedNewton,'--',...    
+plot(vargrid,logLaplaceEv,vargrid,logALE,vargrid,logALE_Newton,...    
     theta0,logEv0,'ko',varHat,logLaplEvMax,'*');
 xlabel('prior variance (\sigma^2)'); ylabel('log-evidence');
 title('log-evidence vs \sigma^2'); box off;
-legend('Laplace Evidence', 'ALE (moving)', 'ALE (fixed)', 'newALE (moving)', ...
-    'newALE (fixed)', 'theta_0','theta max'); 
-set(gca,'ylim',[min(logLaplaceEv)-1,max([logALE_moving;logLaplaceEv])+1]);
+legend('Laplace Evidence', 'ALE', 'ALE-Newton','theta_0','theta max'); 
+set(gca,'ylim',[min(logLaplaceEv)-1,max([logALE;logLaplaceEv])+1]);
