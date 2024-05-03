@@ -13,11 +13,11 @@
 addpath utils;
 
 % Set dimensions and hyperparameter
-varprior = 1;  % prior variance of weights
+varprior = 2;  % prior variance of weights
 nw = 20;         % number of weights
 nstim = 100;     % number of stimuli
 vlims = log10([.1, 4]); % limits of grid over sig^2 to consider
-theta0 = 2; % prior variance for DLA
+theta0 = .8; % prior variance for DLA
 
 % Sample weights from prior
 wts = randn(nw,1)*sqrt(varprior);
@@ -155,16 +155,24 @@ for jj = 1:ngrid
     
 end
 
-% Find Newton-ALE max
-[logALEMax,ii]=max(logALE_Newton);
-varHat_ALE = vargrid(ii);
+%% 5. Perform numerical optimization of NewtonLaplace ALE 
 
-% Check that our function for newton-ALE works
-logALEnewton_max = -neglogEv_NewtonLaplace(log(varHat_ALE),mstruct,wmap0,ddnegL0,Lmu0);
+% Set optimization parameters for fminunc
+opts2 = optimoptions('fminunc','SpecifyObjectiveGradient',false,'display','iter');
+%opts2 = optimoptions('fminunc','algorithm','quasi-newton','SpecifyObjectiveGradient',true,'display','iter');
+%opts2 = optimoptions('fminunc','algorithm','trust-region','SpecifyObjectiveGradient',true,'display','iter');
 
+% make function handle
+f_neglogEv = @(logtheta)(neglogEv_NewtonLaplace(logtheta,mstruct,wmap0,ddnegL0,Lmu0));
+
+% Compute MAP estimate
+[logtheta1,negALE1] = fminunc(f_neglogEv,log(theta0),opts2);
+varHat_ALE = exp(logtheta1); % transform log(sigma^2) to sigma^2
+logALEnewton_max = -negALE1; % flip sign to get newton-ALE at maximum
 
 
 %% Make plot of LE and ALE
+
 subplot(212);
 plot(vargrid,logLaplaceEv,vargrid,logALE,vargrid,logALE_Newton,...    
     theta0,logEv0,'ko',varHat,logLaplEvMax,'*', varHat_ALE, logALEnewton_max,'s');
