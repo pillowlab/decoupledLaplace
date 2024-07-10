@@ -46,7 +46,8 @@ dwmap_dtheta = (Hpost\wmap0)/theta0^2;
 %% 4. Compute gradient d wmap / dtheta using finite differencing
 
 dtheta = .01; % change in theta 
-wmap1 = compMAPwts(xx,yy,theta0+dtheta);  % Compute new MAP estimate
+theta1 = theta0+dtheta;
+wmap1 = compMAPwts(xx,yy,theta1); % Compute new MAP estimate
 
 % finite differencing formula for gradient
 dwmap_dtheta_empir = (wmap1-wmap0)/dtheta;
