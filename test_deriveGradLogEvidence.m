@@ -55,8 +55,10 @@ dwmap_dtheta_empir = (wmap1-wmap0)/dtheta;
 %% 4. compare the analytic and finite differencing gradient
 
 plot(1:nw,dwmap_dtheta,'-o',1:nw,dwmap_dtheta_empir,'--o');
+hold on;, plot([1 nw], [0 0], 'k', 'LineWidth',1); hold off;
 xlabel('weight #');
 ylabel('dw/dtheta')
 title('analytic and empirical gradient dwmap / dtheta'); 
 box off;
 legend('analytic','finite diff');
+

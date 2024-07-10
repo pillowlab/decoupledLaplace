@@ -15,7 +15,8 @@ end
 
 if nargin < 4
     % Set optimization parameters for fminunc
-    optimopts = optimoptions('fminunc','algorithm','trust-region','SpecifyObjectiveGradient',true,'HessianFcn','objective');
+    optimopts = optimoptions('fminunc','algorithm','trust-region',...
+        'SpecifyObjectiveGradient',true,'HessianFcn','objective','display','off');
 end
 
 % ========  Compute MAP estimate of w ===========
