@@ -2,7 +2,7 @@ function [L,dL,ddL] = neglogpost_GLM(wts,hprs,mstruct)
 % [L,dL,ddL] = neglogpost_GLM(wts,hprs,mstruct)
 %
 % Compute negative log-posterior of data under GLM regression model,
-% plus gradient and Hessian
+% plus gradient and Hessian (neglecting normalizing constant)
 %
 % INPUTS:
 %   wts [m x 1] - regression weights

@@ -6,6 +6,10 @@ function [logEv,wmap,postHess] = compLogLaplaceEv(theta,mstruct,w0,optimopts)
 
 % intial guess for weights (random)
 if nargin < 3 
+    nw = size(mstruct.liargs{1},2);  % get number of weights
+    w0 = randn(nw,1)*.1;
+elseif isempty(w0)
+    nw = size(mstruct.liargs{1},2);  % get number of weights
     w0 = randn(nw,1)*.1;
 end
 
@@ -29,7 +33,7 @@ wmap = fminunc(lfunc,w0,optimopts);
 [negL,~,ddnegL] = mstruct.neglogli(wmap,mstruct.liargs{:}); 
 
 % evaluate log-prior and its Hessian
-[logp,~,negCinv] = mstruct.logprior(wmap,theta,mstruct.priargs{:});
+[logpri,~,negCinv] = mstruct.logprior(wmap,theta,mstruct.priargs{:});
 
 % Hessian of posterior
 postHess = ddnegL - negCinv;
@@ -38,4 +42,4 @@ postHess = ddnegL - negCinv;
 logpost = .5*logdet(postHess) - length(wmap)/2*log(2*pi);
 
 % Compute log-evidence using Laplace approximation
-logEv = (-negL) + logp - logpost;
+logEv = (-negL) + logpri - logpost;
