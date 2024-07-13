@@ -72,13 +72,15 @@ fprintf('finite-diff: %.5f\n', dL_dtheta_empir);
 % --------------------------------------------------
 
 % gradient of log-prior w.r.t. w at theta0
-[logpri0,dlogpri_dw] = logprior_stdnormal(wmap0,theta0);
+[logpri0,dlogpri_dw0] = logprior_stdnormal(wmap0,theta0);
 
 % gradient of log-prior w.r.t. theta
-trm1 = dlogpri_dw'*dwmap_dtheta;  % dp / dwmap * dwmap / dtheta term
+% ------------------------------------
+% indirect term: dp / dwmap * dwmap / dtheta
+trm1 = dlogpri_dw0'*dwmap_dtheta; 
+% direct term: dp / dtheta
 trm2 =  wmap0'*wmap0/(2*theta0^2) - nw/(2*theta0); % dp / dtheta term
 dlogpri_dtheta =  trm1 + trm2;
-
 
 % Finite differencing
 % -------------------
