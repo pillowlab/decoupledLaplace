@@ -1,7 +1,8 @@
-function [wmap,mstruct,Hpost] = compMAPwts(xx,yy,varprior,optimopts)
-% [wmap,mstruct,Hpost] = compMAPwts(xx,yy,varprior,optimopts)
+function [wmap,mstruct,Hpost] = compMAPwts_bernoulliGLM(xx,yy,varprior,optimopts)
+% [wmap,mstruct,Hpost] = compMAPwts_bernoulliGLM(xx,yy,varprior,optimopts)
 %
-% Compute the MAP weights under Bernoulli GLM with standard normal prior
+% Compute the MAP weights under Bernoulli GLM given zero-mean Gaussian
+% prior with variance 'varprior'.
 %
 % Inputs
 % -------

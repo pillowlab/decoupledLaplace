@@ -34,6 +34,6 @@ elseif nargout == 3 % Evaluate Hessian
     [f,df,ddf] = softplus(xproj); % evaluate log-normalizer & derivs
     negL = -Y'*xproj + sum(f);    % neg log-likelihood
     dnegL = X'*(df-Y);            % gradient
-    H = X'*bsxfun(@times,X,ddf);  % Hessian
+    H = X'*(X.*ddf);  % Hessian (using broadcasting)
 
 end
