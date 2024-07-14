@@ -26,7 +26,7 @@ yy = rand(nstim,1)<pp; % Bernoulli outputs
 %% 2. Compute MAP estimate of weights given true hyperparams
 
 theta0 = 5;  % prior variance at which to compute initial MAP estimate & Laplace evidence
-wmap0 = compMAPwts(xx,yy,theta0);  % map estimate given theta0
+wmap0 = compMAPwts_bernoulliGLM(xx,yy,theta0);  % map estimate given theta0
 
 %% 3. Compute gradient d wmap / dtheta using analytic formula
 
@@ -47,7 +47,7 @@ dwmap_dtheta = (Hpost\wmap0)/theta0^2;
 
 dtheta = .01; % change in theta 
 theta1 = theta0+dtheta;
-wmap1 = compMAPwts(xx,yy,theta1); % Compute new MAP estimate
+wmap1 = compMAPwts_bernoulliGLM(xx,yy,theta1); % Compute new MAP estimate
 
 % finite differencing formula for gradient
 dwmap_dtheta_empir = (wmap1-wmap0)/dtheta;

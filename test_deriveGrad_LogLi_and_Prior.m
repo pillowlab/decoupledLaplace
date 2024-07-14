@@ -24,7 +24,7 @@ yy = rand(nstim,1)<pp; % Bernoulli outputs
 %% 2. Compute MAP estimate of weights given true hyperparams
 
 theta0 = 3;  % prior variance at which to compute initial MAP estimate & Laplace evidence
-[wmap0,mstruct] = compMAPwts(xx,yy,theta0);  % map estimate given theta0
+[wmap0,mstruct] = compMAPwts_bernoulliGLM(xx,yy,theta0);  % map estimate given theta0
 
 %% 3. Compute gradient d wmap / dtheta
 
@@ -50,7 +50,7 @@ dL_dtheta = -dnegL0'*dwmap_dtheta;
 % -------------------
 dtheta = .01; % change in theta 
 theta1 = theta0+dtheta;  % new theta
-wmap1 = compMAPwts(xx,yy,theta1);  % Compute new MAP estimate
+wmap1 = compMAPwts_bernoulliGLM(xx,yy,theta1);  % Compute new MAP estimate
 
 % compute value of neg log-likelihood at new wmap
 negL1 = neglogli_bernoulliGLM(wmap1,xx,yy);
@@ -86,7 +86,7 @@ dlogpri_dtheta =  trm1 + trm2;
 % -------------------
 dtheta = .01; % change in theta 
 theta1 = theta0+dtheta;  % new theta
-wmap1 = compMAPwts(xx,yy,theta1);  % Compute new MAP estimate
+wmap1 = compMAPwts_bernoulliGLM(xx,yy,theta1);  % Compute new MAP estimate
 
 % Compute value of log-prior at new wmap
 logpri1 = logprior_stdnormal(wmap1,theta1);
