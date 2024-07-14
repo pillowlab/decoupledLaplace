@@ -102,8 +102,9 @@ fprintf(' analytical: %.5f\n', dlogpri_dtheta);
 fprintf('finite-diff: %.5f\n', dlogpri_dtheta_empir);
 
 
-% % check numerically that we didn't screw up in the function
-% [dlogEv,dlogLi,dlogPri,dlogPost,dwmap_dthet] = compLogLaplaceEv_grad_bernoulliGLM(theta0,xx,yy);
+% % ===================================================================
+% % uncomment to check that the function version agrees
+% [dlogEv,dlogEv_terms] = compLogLaplaceEv_grad_bernoulliGLM(theta0,xx,yy);
 % 
-% [dlogpri_dtheta,dlogPri]
-% [dL_dtheta,dlogLi]
+% [dL_dtheta,dlogEv_terms(1)]
+% [dlogpri_dtheta,dlogEv_terms(2)]

@@ -71,6 +71,6 @@ dlogPost_dtheta = dlpost_direct + dlpost_indirect;
 % -----------------------------------------------
 dlogEv = dlogLi_dtheta + dlogPri_dtheta - dlogPost_dtheta;
 
-if nargout > 2
+if nargout > 1
     dlogEv_terms = [dlogLi_dtheta, dlogPri_dtheta, dlogPost_dtheta];
 end
