@@ -1,5 +1,5 @@
-function [wmap,mstruct,Hpost] = compMAPwts_bernoulliGLM(xx,yy,varprior,optimopts)
-% [wmap,mstruct,Hpost] = compMAPwts_bernoulliGLM(xx,yy,varprior,optimopts)
+function [wmap,mstruct,Hpost,dlogLi,dlogPri] = compMAPwts_bernoulliGLM(xx,yy,varprior,optimopts)
+% [wmap,mstruct,Hpost,dlogLi,dlogPri] = compMAPwts_bernoulliGLM(xx,yy,varprior,optimopts)
 %
 % Compute the MAP weights under Bernoulli GLM given zero-mean Gaussian
 % prior with variance 'varprior'.
@@ -16,7 +16,8 @@ function [wmap,mstruct,Hpost] = compMAPwts_bernoulliGLM(xx,yy,varprior,optimopts
 %    wmap [d,1] - MAP estimate of weights
 %       mstruct - model structure (with fields for likelihood & prior)
 %   Hpost [d,d] - Hessian of negative log posterior
-
+%  dlogLi [d,1] - gradient of log-likelihood at wmap
+% dlogPri [d,1] - gradient of log-prior at wmap
 
 % ======= parse inputs =============
 
@@ -46,9 +47,17 @@ lfunc = @(w)(neglogpost_GLM(w,varprior,mstruct));
 
 wmap = fminunc(lfunc,w0,optimopts);
 
-% ========  Compute Hessian of negative log posterior, if desired ======= 
+% ========  Compute Hessian and gradients, if desired ======= 
 
 if nargout > 2
 
+    % Hessian of negative log-posterior at wmap
     [~,~,Hpost] = lfunc(wmap);
+    
+    % Gradient of log-likelihood at wmap
+    [~,dneglogLi] = mstruct.neglogli(wmap,mstruct.liargs{:});
+    dlogLi = -dneglogLi;
+
+    % Gradient of log-prior at wmap
+    [~,dlogPri] = mstruct.logprior(wmap,varprior,mstruct.priargs{:});
 end
